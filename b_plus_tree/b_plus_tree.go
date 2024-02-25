@@ -298,6 +298,8 @@ type ProcessingNode struct {
 func (t *BPTree) All() {
 	current := t.Root
 
+	make := make(map[int]struct{})
+
 	//go to left first key
 	for current.Key[0].NextNode != nil {
 		current = current.Key[0].NextNode
@@ -309,7 +311,7 @@ func (t *BPTree) All() {
 
 	for current != nil {
 		for i := 0; i < current.Pointer; i++ {
-
+			make[current.Key[i].Value] = struct{}{}
 			if less <= current.Key[i].Value {
 				counter++
 				less = current.Key[i].Value
@@ -326,4 +328,5 @@ func (t *BPTree) All() {
 	}
 
 	fmt.Println(counter)
+	fmt.Println(len(make))
 }

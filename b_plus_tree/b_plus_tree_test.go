@@ -1,6 +1,7 @@
 package b_plus_tree
 
 import (
+	"math/rand"
 	"slices"
 	"testing"
 )
@@ -161,7 +162,7 @@ func BenchmarkSearchLeaf(b *testing.B) {
 	}
 }
 
-func BenchmarkInsert(b *testing.B) {
+func BenchmarkInsertSameValue(b *testing.B) {
 	b.StopTimer()
 	BPTree := NewBPTree(40_000, 5)
 
@@ -169,5 +170,17 @@ func BenchmarkInsert(b *testing.B) {
 
 	for i := 0; i < b.N; i++ {
 		BPTree.Insert(5)
+	}
+}
+
+// 258.6 ns/op
+func BenchmarkInsertRandom(b *testing.B) {
+	b.StopTimer()
+	BPTree := NewBPTree(40_000, 40)
+
+	b.StartTimer()
+
+	for i := 0; i < b.N; i++ {
+		BPTree.Insert(rand.Intn(5000000))
 	}
 }
