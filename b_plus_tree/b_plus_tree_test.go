@@ -1,6 +1,7 @@
 package b_plus_tree
 
 import (
+	"slices"
 	"testing"
 )
 
@@ -8,18 +9,18 @@ func TestSearchNode(t *testing.T) {
 	currentNode := NewNodeTest(1, 4, 21)
 
 	t.Run("smaller than", func(t *testing.T) {
-		key := NewKey(3)
+		key := newKey(3)
 
-		get := currentNode.Search(key)
+		get := currentNode.search(key)
 		want := 1
 
 		assertSearch(t, get, want)
 	})
 
 	t.Run("bigger than", func(t *testing.T) {
-		key := NewKey(654)
+		key := newKey(654)
 
-		get := currentNode.Search(key)
+		get := currentNode.search(key)
 		want := 3
 
 		assertSearch(t, get, want)
@@ -37,70 +38,70 @@ func assertSearch(t testing.TB, get, want int) {
 func BenchmarkSearch(b *testing.B) {
 	b.StopTimer()
 	currentNode := NewNodeTest(1, 4, 21)
-	key := NewKey(3)
+	key := newKey(3)
 	b.StartTimer()
 
 	for i := 0; i < b.N; i++ {
-		currentNode.Search(key)
+		currentNode.search(key)
 	}
 }
 
-func TestFindLeaf(t *testing.T) {
-	t.Run("just single node", func(t *testing.T) {
-		currentNode := NewNodeTest(1, 4, 21)
+// func TestFindLeaf(t *testing.T) {
+// 	t.Run("just single node", func(t *testing.T) {
+// 		currentNode := NewNodeTest(1, 4, 21)
 
-		key := NewKey(3)
-		leaf, index, parentIndex := currentNode.SearchLeaf(key)
-		indexWant, parentIndexWant := 1, NotExist
+// 		key := NewKey(3)
+// 		leaf, index, parentIndex := currentNode.SearchLeaf(key)
+// 		indexWant, parentIndexWant := 1, NotExist
 
-		assertFindLeaf(t, leaf, &currentNode, indexWant, index, parentIndex, parentIndexWant)
-	})
+// 		assertFindLeaf(t, leaf, &currentNode, indexWant, index, parentIndex, parentIndexWant)
+// 	})
 
-	t.Run("more then one node (we have the parent)", func(t *testing.T) {
-		rootNode := NewNodeTest(25, 104, 210)
-		key := NewKey(110)
+// 	t.Run("more then one node (we have the parent)", func(t *testing.T) {
+// 		rootNode := NewNodeTest(25, 104, 210)
+// 		key := NewKey(110)
 
-		nextNode := NewNodeTest(104, 105, 106, 150, 185)
-		rootNode.Key[2].ConnectNodeTest(&nextNode)
+// 		nextNode := NewNodeTest(104, 105, 106, 150, 185)
+// 		rootNode.Key[2].ConnectNodeTest(&nextNode)
 
-		leaf, index, parentIndex := rootNode.SearchLeaf(key)
-		foundLeaf, indexWant, parentIndexWant := &nextNode, 3, 2
+// 		leaf, index, parentIndex := rootNode.SearchLeaf(key)
+// 		foundLeaf, indexWant, parentIndexWant := &nextNode, 3, 2
 
-		assertFindLeaf(t, leaf, foundLeaf, indexWant, index, parentIndex, parentIndexWant)
-	})
-}
+// 		assertFindLeaf(t, leaf, foundLeaf, indexWant, index, parentIndex, parentIndexWant)
+// 	})
+// }
 
-func assertFindLeaf(t testing.TB, leaf, foundLeaf *Node, indexWant, index, parentIndex, parentIndexWant int) {
-	t.Helper()
+// func assertFindLeaf(t testing.TB, leaf, foundLeaf *Node, indexWant, index, parentIndex, parentIndexWant int) {
+// 	t.Helper()
 
-	if leaf != foundLeaf || indexWant != index || parentIndex != parentIndexWant {
-		t.Errorf("get leaf: %-v | want leaf: %-v | get parent index: %d | want parent index: %d | get index: %d | want index: %d",
-			leaf, foundLeaf, parentIndex, parentIndexWant, index, indexWant)
-	}
-}
+// 	if leaf != foundLeaf || indexWant != index || parentIndex != parentIndexWant {
+// 		t.Errorf("get leaf: %-v | want leaf: %-v | get parent index: %d | want parent index: %d | get index: %d | want index: %d",
+// 			leaf, foundLeaf, parentIndex, parentIndexWant, index, indexWant)
+// 	}
+// }
 
 // 2ns/op per node
-func BenchmarkFindLeaf(b *testing.B) {
-	b.StartTimer()
-	rootNode := NewNodeTest(25, 104, 210)
-	key := NewKey(110)
+// func BenchmarkFindLeaf(b *testing.B) {
+// 	b.StartTimer()
+// 	rootNode := NewNodeTest(25, 104, 210)
+// 	key := NewKey(110)
 
-	nextNode := NewNodeTest(104, 105, 106, 150, 185)
-	rootNode.Key[2].ConnectNodeTest(&nextNode)
+// 	nextNode := NewNodeTest(104, 105, 106, 150, 185)
+// 	rootNode.Key[2].ConnectNodeTest(&nextNode)
 
-	b.StartTimer()
+// 	b.StartTimer()
 
-	for i := 0; i < b.N; i++ {
-		rootNode.SearchLeaf(key)
-	}
-}
+// 	for i := 0; i < b.N; i++ {
+// 		rootNode.SearchLeaf(key)
+// 	}
+// }
 
 func TestInsertKey(t *testing.T) {
 	leaf := NewNodeTest(1, 10, 125, 1520, 0)
-	key := NewKey(59)
+	key := newKey(0)
 
-	leaf.InsertKey(key, 2)
-	want := NewNodeTest(1, 10, 59, 125, 1520)
+	leaf.insertKey(key, 0)
+	want := NewNodeTest(0, 1, 10, 125, 1520)
 
 	if CompareNodeKeyTest(leaf, want) {
 		t.Errorf("get: %-v want: %-v", leaf.Key, want.Key)
@@ -111,11 +112,62 @@ func BenchmarkInsertKey(b *testing.B) {
 	b.StopTimer()
 
 	leaf := NewNodeTest(1, 10, 125, 1520, 0)
-	key := NewKey(59)
+	key := newKey(59)
 
 	b.StartTimer()
 
 	for i := 0; i < b.N; i++ {
-		leaf.InsertKey(key, 2)
+		leaf.insertKey(key, 2)
+	}
+}
+
+func TestBPTreeSearchLeaf(t *testing.T) {
+	BPTree := NewBPTree(40_000, 5)
+	rootNode := NewNodeTest(25, 104, 210)
+
+	BPTree.Root = &rootNode
+
+	key := newKey(110)
+
+	nextNode := NewNodeTest(104, 105, 106, 150, 185)
+	rootNode.Key[2].ConnectNodeTest(&nextNode)
+
+	BPTree.searchLeaf(key)
+	expectedStack := []int{2, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}
+
+	stack := slices.Compare[[]int](BPTree.Stack.Stack, expectedStack)
+
+	if BPTree.CurrentNode != &nextNode || stack != 0 {
+		t.Errorf("expected node: %-v| get node: %-v| expected stack: %-v| got stack: %-v", &nextNode, BPTree.CurrentNode, BPTree.Stack.Stack, stack)
+	}
+}
+
+func BenchmarkSearchLeaf(b *testing.B) {
+	b.StopTimer()
+	BPTree := NewBPTree(40_000, 5)
+	rootNode := NewNodeTest(25, 104, 210)
+
+	BPTree.Root = &rootNode
+
+	key := newKey(110)
+
+	nextNode := NewNodeTest(104, 105, 106, 150, 185)
+	rootNode.Key[2].ConnectNodeTest(&nextNode)
+	b.StartTimer()
+
+	for i := 0; i < b.N; i++ {
+		BPTree.searchLeaf(key)
+		BPTree.clear()
+	}
+}
+
+func BenchmarkInsert(b *testing.B) {
+	b.StopTimer()
+	BPTree := NewBPTree(40_000, 5)
+
+	b.StartTimer()
+
+	for i := 0; i < b.N; i++ {
+		BPTree.Insert(5)
 	}
 }

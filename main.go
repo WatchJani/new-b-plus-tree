@@ -6,9 +6,11 @@ import (
 )
 
 func main() {
-	leaf := b.NewNodeTest(1, 10, 125, 1520, 0)
-	key := b.NewKey(59)
+	BPTree := b.NewBPTree(40_000, 5)
 
-	leaf.InsertKey(key, 3)
-	fmt.Println(leaf.Key)
+	for value := 0; value < 10; value++ {
+		BPTree.Insert(value)
+	}
+
+	fmt.Println(BPTree.Root)
 }
