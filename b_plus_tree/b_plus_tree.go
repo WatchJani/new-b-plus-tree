@@ -1,6 +1,7 @@
 package b_plus_tree
 
 import (
+	"fmt"
 	"math"
 )
 
@@ -170,8 +171,19 @@ func (t *BPTree) Insert(key int) {
 	t.searchLeaf(createKey) //find leaf
 	t.appendToLeaf(createKey)
 
-	if t.CurrentNode == nil {
-		// fmt.Println("nil")
+	for t.CurrentNode != nil && t.Degree == t.CurrentNode.Pointer {
+		t.newParent()
+		middleKey := t.Degree / 2
+
+		newNode := t.split(middleKey, 1)
+
+		for i := 0; i < newNode.Pointer+1; i++ {
+			t.CurrentNode.Key[middleKey+1+i].NextNode.Parent = newNode
+		}
+
+		t.updateState(middleKey, newNode)
+
+		t.CurrentNode = t.CurrentNode.Parent
 	}
 
 	t.clear()
@@ -190,7 +202,7 @@ func (t *BPTree) appendToLeaf(key Key) {
 		t.newParent()
 
 		middleKey := t.Degree / 2
-		newNode := t.split(middleKey)
+		newNode := t.split(middleKey, 0) // ?
 
 		t.updateState(middleKey, newNode)
 	}
@@ -201,23 +213,24 @@ func (t *BPTree) appendToLeaf(key Key) {
 func (t *BPTree) updateState(middleKey int, newNode *Node) {
 	indexToUpdate := t.next()
 	//add and update parent
+
 	t.CurrentNode.Parent.insertKey(t.CurrentNode.Key[middleKey], indexToUpdate)
 	t.CurrentNode.Parent.Key[indexToUpdate+1].updateNextNode(newNode)
+	t.CurrentNode.Parent.Key[indexToUpdate].updateNextNode(t.CurrentNode)
 
-	//link current Node and decrees
-	t.CurrentNode.Pointer -= (len(t.CurrentNode.Key[:middleKey]) + 1)
+	t.CurrentNode.Pointer -= (len(t.CurrentNode.Key[:middleKey]) + t.Degree%2) //! bug
 	t.CurrentNode.link(newNode)
 }
 
-func (n *Node) appendKeys(key []Key, position int) {
+func (n *Node) appendKeys(key []Key, position, code int) {
 	copy(n.Key[position:], key)
-	n.Pointer += len(key)
+	n.Pointer += len(key) - code
 }
 
-func (t *BPTree) split(middleKey int) *Node {
+func (t *BPTree) split(middleKey int, code int) *Node {
 	newNode := t.createNode()
 
-	newNode.appendKeys(t.CurrentNode.Key[middleKey:t.Degree], 0)
+	newNode.appendKeys(t.CurrentNode.Key[middleKey+code:t.Degree+code], 0, code) //! bug
 	newNode.Parent = t.CurrentNode.Parent
 
 	return newNode
@@ -228,6 +241,7 @@ func (t *BPTree) newParent() {
 		t.CurrentNode.Parent = t.createNode()
 		t.Root = t.CurrentNode.Parent
 	}
+
 }
 
 func (t BPTree) shouldUpdate(positionInsert int, key Key) bool {
@@ -279,4 +293,37 @@ func NewBPTree(capacity, degree int) *BPTree {
 type ProcessingNode struct {
 	CurrentNode *Node
 	Stack       //have history of indexes
+}
+
+func (t *BPTree) All() {
+	current := t.Root
+
+	//go to left first key
+	for current.Key[0].NextNode != nil {
+		current = current.Key[0].NextNode
+	}
+
+	var counter int
+
+	var less int = -1
+
+	for current != nil {
+		for i := 0; i < current.Pointer; i++ {
+
+			if less <= current.Key[i].Value {
+				counter++
+				less = current.Key[i].Value
+			} else {
+				break
+			}
+
+			fmt.Println(current.Key[i])
+		}
+
+		fmt.Println()
+
+		current = current.LinkNode
+	}
+
+	fmt.Println(counter)
 }
