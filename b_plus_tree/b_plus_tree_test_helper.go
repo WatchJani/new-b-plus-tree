@@ -4,7 +4,7 @@ func NewNodeTest(keys ...int) Node {
 	keyArray := make([]Key, len(keys))
 
 	for i, key := range keys {
-		keyArray[i] = Key{key, nil}
+		keyArray[i] = Key{key, 0, nil}
 	}
 
 	return Node{

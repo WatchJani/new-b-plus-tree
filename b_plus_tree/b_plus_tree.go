@@ -7,6 +7,31 @@ import (
 
 const NotExist int = -1
 
+type BPTree struct {
+	Memory    []*Node
+	Root      *Node
+	Degree    int
+	MiddleKey int
+	ProcessingNode
+}
+
+type ProcessingNode struct {
+	CurrentNode *Node
+	Stack       //have history of indexes
+}
+
+type Node struct {
+	Pointer  int
+	Parent   *Node
+	LinkNode *Node
+	Key      []Key
+}
+type Key struct {
+	Key      int
+	Value    int
+	NextNode *Node
+}
+
 type Stack struct {
 	Stack   []int
 	Current int
@@ -36,33 +61,21 @@ func (s *Stack) clear() {
 	s.Current = 0
 }
 
-type Key struct {
-	Value    int
-	NextNode *Node
-}
-
 func (k *Key) updateNextNode(n *Node) {
 	k.NextNode = n
 }
 
-// *fix that (maybe need the pointer)
-func newKey(value int) Key {
+func newKey(key, value int) Key {
 	return Key{
+		Key:   key,
 		Value: value,
 	}
-}
-
-type Node struct {
-	Pointer  int
-	Parent   *Node
-	LinkNode *Node
-	Key      []Key
 }
 
 // search returns the index where the specified key should be inserted in the sorted keys array.
 func (n *Node) search(key Key) int {
 	for i, currentKey := range n.Key[:n.Pointer] {
-		if key.Value < currentKey.Value {
+		if key.Key < currentKey.Key {
 			return i
 		}
 	}
@@ -161,32 +174,40 @@ func (t *BPTree) createNode() *Node {
 	return newNode
 }
 
-func (t *BPTree) Insert(key int) {
-	createKey := newKey(key) //make real key
+func (t *BPTree) Insert(key, value int) {
+	realKey := newKey(key, value) //make real key
 
 	if t.Root == nil { //Check if root exist
 		t.Root = t.createNode() //create new root
 	}
 
-	t.searchLeaf(createKey) //find leaf
-	t.appendToLeaf(createKey)
+	t.searchLeaf(realKey)   //find leaf
+	t.appendToLeaf(realKey) //add to leaf
 
-	for t.CurrentNode != nil && t.Degree == t.CurrentNode.Pointer {
-		t.newParent()
-		middleKey := t.Degree / 2
-
-		newNode := t.split(middleKey, 1)
-
-		for i := 0; i < newNode.Pointer+1; i++ {
-			t.CurrentNode.Key[middleKey+1+i].NextNode.Parent = newNode
-		}
-
-		t.updateState(middleKey, newNode)
-
-		t.CurrentNode = t.CurrentNode.Parent
-	}
+	t.splitParent() //check if will parent split
 
 	t.clear()
+}
+
+func (t *BPTree) splitParent() {
+	for t.CurrentNode != nil && t.Degree == t.CurrentNode.Pointer {
+		t.newParent()
+
+		newNode := t.split(1)
+
+		t.updateState(newNode)
+
+		//update parents
+		for i := 0; i < newNode.Pointer+1; i++ {
+			t.CurrentNode.Key[t.MiddleKey+1+i].NextNode.Parent = newNode
+		}
+
+		t.Next()
+	}
+}
+
+func (t *BPTree) Next() {
+	t.CurrentNode = t.CurrentNode.Parent
 }
 
 func (t *BPTree) appendToLeaf(key Key) {
@@ -201,24 +222,22 @@ func (t *BPTree) appendToLeaf(key Key) {
 	if t.CurrentNode.Pointer == t.Degree {
 		t.newParent()
 
-		middleKey := t.Degree / 2
-		newNode := t.split(middleKey, 0) // ?
+		newNode := t.split(0) // ?
 
-		t.updateState(middleKey, newNode)
+		t.updateState(newNode)
 	}
 
-	t.CurrentNode = t.CurrentNode.Parent
+	t.Next()
 }
 
-func (t *BPTree) updateState(middleKey int, newNode *Node) {
+func (t *BPTree) updateState(newNode *Node) {
 	indexToUpdate := t.next()
-	//add and update parent
 
-	t.CurrentNode.Parent.insertKey(t.CurrentNode.Key[middleKey], indexToUpdate)
+	t.CurrentNode.Parent.insertKey(t.CurrentNode.Key[t.MiddleKey], indexToUpdate)
 	t.CurrentNode.Parent.Key[indexToUpdate+1].updateNextNode(newNode)
 	t.CurrentNode.Parent.Key[indexToUpdate].updateNextNode(t.CurrentNode)
 
-	t.CurrentNode.Pointer -= (len(t.CurrentNode.Key[:middleKey]) + t.Degree%2) //! bug
+	t.CurrentNode.Pointer -= (len(t.CurrentNode.Key[:t.MiddleKey]) + t.Degree%2)
 	t.CurrentNode.link(newNode)
 }
 
@@ -227,10 +246,10 @@ func (n *Node) appendKeys(key []Key, position, code int) {
 	n.Pointer += len(key) - code
 }
 
-func (t *BPTree) split(middleKey int, code int) *Node {
+func (t *BPTree) split(code int) *Node {
 	newNode := t.createNode()
 
-	newNode.appendKeys(t.CurrentNode.Key[middleKey+code:t.Degree+code], 0, code) //! bug
+	newNode.appendKeys(t.CurrentNode.Key[t.MiddleKey+code:t.Degree+code], 0, code)
 	newNode.Parent = t.CurrentNode.Parent
 
 	return newNode
@@ -245,7 +264,7 @@ func (t *BPTree) newParent() {
 }
 
 func (t BPTree) shouldUpdate(positionInsert int, key Key) bool {
-	return positionInsert > 0 && t.CurrentNode.Key[positionInsert-1] == key
+	return positionInsert > 0 && t.CurrentNode.Key[positionInsert-1].Key == key.Key
 }
 
 func (t *BPTree) updateExistingKey(positionInsert int, key Key) {
@@ -270,31 +289,22 @@ func (n *Node) insertKey(key Key, position int) {
 	n.increasePointer()
 }
 
-type BPTree struct {
-	Memory []*Node
-	Root   *Node
-	Degree int
-	ProcessingNode
-}
-
+// new B+ Tree
 func NewBPTree(capacity, degree int) *BPTree {
 	numberOfNode := capacity / degree
 	treeHeight := math.Log2(float64(capacity))
 
 	return &BPTree{
-		Memory: make([]*Node, 0, numberOfNode),
-		Degree: degree,
+		Memory:    make([]*Node, 0, numberOfNode),
+		Degree:    degree,
+		MiddleKey: degree / 2,
 		ProcessingNode: ProcessingNode{
 			Stack: newStack(int(treeHeight)),
 		},
 	}
 }
 
-type ProcessingNode struct {
-	CurrentNode *Node
-	Stack       //have history of indexes
-}
-
+// for testing nothing special
 func (t *BPTree) All() {
 	current := t.Root
 
@@ -311,10 +321,10 @@ func (t *BPTree) All() {
 
 	for current != nil {
 		for i := 0; i < current.Pointer; i++ {
-			make[current.Key[i].Value] = struct{}{}
-			if less <= current.Key[i].Value {
+			make[current.Key[i].Key] = struct{}{}
+			if less <= current.Key[i].Key {
 				counter++
-				less = current.Key[i].Value
+				less = current.Key[i].Key
 			} else {
 				break
 			}
