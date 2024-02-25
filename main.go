@@ -8,9 +8,9 @@ import (
 func main() {
 	BPTree := b.NewBPTree(40_000, 5)
 
-	for value := 0; value < 10; value++ {
+	for value := 0; value < 5; value++ {
 		BPTree.Insert(value)
 	}
 
-	fmt.Println(BPTree.Root)
+	fmt.Println(BPTree.Root.Key)
 }
