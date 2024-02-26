@@ -173,7 +173,7 @@ func BenchmarkInsertSameValue(b *testing.B) {
 	}
 }
 
-// 258.6 ns/op
+// 279.9 ns/op
 func BenchmarkInsertRandom(b *testing.B) {
 	b.StopTimer()
 	BPTree := NewBPTree(40_000, 50)

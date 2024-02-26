@@ -6,7 +6,7 @@ import (
 )
 
 func main() {
-	BPTree := b.NewBPTree(40_000, 199)
+	BPTree := b.NewBPTree(40_000, 200)
 
 	for value := 0; value < 40000; value++ {
 		BPTree.Insert(rand.Intn(40_000), rand.Intn(40_000))
@@ -14,5 +14,4 @@ func main() {
 
 	BPTree.All()
 
-	// fmt.Println(BPTree.Root.Key)
 }
