@@ -72,7 +72,7 @@ func BenchmarkSearch(b *testing.B) {
 // 	})
 // }
 
-func assertFindLeaf(t testing.TB, leaf, foundLeaf *Node, indexWant, index, parentIndex, parentIndexWant int) {
+func assertFindLeaf(t testing.TB, leaf, foundLeaf *Node[int, int], indexWant, index, parentIndex, parentIndexWant int) {
 	t.Helper()
 
 	if leaf != foundLeaf || indexWant != index || parentIndex != parentIndexWant {
@@ -123,7 +123,7 @@ func BenchmarkInsertKey(b *testing.B) {
 }
 
 func TestBPTreeSearchLeaf(t *testing.T) {
-	BPTree := NewBPTree(40_000, 5)
+	BPTree := NewBPTree[int, int](40_000, 5)
 	rootNode := NewNodeTest(25, 104, 210)
 
 	BPTree.Root = &rootNode
@@ -145,7 +145,7 @@ func TestBPTreeSearchLeaf(t *testing.T) {
 
 func BenchmarkSearchLeaf(b *testing.B) {
 	b.StopTimer()
-	BPTree := NewBPTree(40_000, 5)
+	BPTree := NewBPTree[int, int](40_000, 5)
 	rootNode := NewNodeTest(25, 104, 210)
 
 	BPTree.Root = &rootNode
@@ -164,7 +164,7 @@ func BenchmarkSearchLeaf(b *testing.B) {
 
 func BenchmarkInsertSameValue(b *testing.B) {
 	b.StopTimer()
-	BPTree := NewBPTree(40_000, 5)
+	BPTree := NewBPTree[int, int](40_000, 5)
 
 	b.StartTimer()
 
@@ -176,10 +176,22 @@ func BenchmarkInsertSameValue(b *testing.B) {
 // 279.9 ns/op
 func BenchmarkInsertRandom(b *testing.B) {
 	b.StopTimer()
-	BPTree := NewBPTree(40_000, 50)
+	BPTree := NewBPTree[int, int](40_000, 100)
 	b.StartTimer()
 
 	for i := 0; i < b.N; i++ {
-		BPTree.Insert(rand.Intn(5_000_000), 0)
+		BPTree.Insert(rand.Intn(5_000_000), rand.Intn(500000))
+	}
+}
+
+func Benchmark(b *testing.B) {
+	b.StopTimer()
+	BPTree := NewBPTree[int, int](40_000, 50)
+	b.StartTimer()
+
+	for i := 0; i < b.N; i++ {
+		for j := 0; j < 40_000; j++ {
+			BPTree.Insert(j, rand.Intn(500000))
+		}
 	}
 }

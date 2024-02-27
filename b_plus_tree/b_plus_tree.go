@@ -11,35 +11,35 @@ const (
 	ParentCode int = 1
 )
 
-type ProcessingNode struct {
-	CurrentNode *Node
+type ProcessingNode[K string | int | float64, V any] struct {
+	CurrentNode *Node[K, V]
 	Stack       //have history of indexes
 }
 
-type BPTree struct {
-	Memory    []*Node
-	Root      *Node
+type BPTree[K string | int | float64, V any] struct {
+	Memory    []*Node[K, V]
+	Root      *Node[K, V]
 	Degree    int
 	MiddleKey int
-	ProcessingNode
+	ProcessingNode[K, V]
 }
 
 // new B+ Tree
-func NewBPTree(capacity, degree int) *BPTree {
+func NewBPTree[K string | int | float64, V any](capacity, degree int) *BPTree[K, V] {
 	numberOfNode := capacity / degree
 	treeHeight := math.Log2(float64(capacity))
 
-	return &BPTree{
-		Memory:    make([]*Node, 0, numberOfNode),
+	return &BPTree[K, V]{
+		Memory:    make([]*Node[K, V], 0, numberOfNode),
 		Degree:    degree,
 		MiddleKey: degree / 2,
-		ProcessingNode: ProcessingNode{
+		ProcessingNode: ProcessingNode[K, V]{
 			Stack: newStack(int(treeHeight)),
 		},
 	}
 }
 
-func (t *BPTree) Insert(key, value int) {
+func (t *BPTree[K, V]) Insert(key K, value V) {
 	realKey := newKey(key, value) //make real key
 
 	if t.Root == nil { //Check if root exist
@@ -54,16 +54,21 @@ func (t *BPTree) Insert(key, value int) {
 	t.clear()
 }
 
-func (t *BPTree) createNode() *Node {
-	newNode := newNode(t.Degree)
+func (n *Node[K, V]) EmptyKey(position int) {
+	n.Key[position] = Key[K, V]{}
+}
+
+func (t *BPTree[K, V]) createNode() *Node[K, V] {
+	newNode := newNode[K, V](t.Degree)
 	t.Memory = append(t.Memory, newNode)
 
-	newNode.Key[0] = Key{}
+	newNode.EmptyKey(0)
 
 	return newNode
 }
 
-func (t *BPTree) split(code int) *Node {
+// *
+func (t *BPTree[K, V]) split(code int) *Node[K, V] {
 	newNode := t.createNode()
 
 	newNode.appendKeys(t.CurrentNode.Key[t.MiddleKey+code:t.Degree+code], 0, code)
@@ -71,27 +76,27 @@ func (t *BPTree) split(code int) *Node {
 
 	return newNode
 }
-
-func (t *BPTree) newParent() {
+func (t *BPTree[K, V]) newParent() {
 	if t.CurrentNode.Parent == nil {
 		t.CurrentNode.Parent = t.createNode()
 		t.Root = t.CurrentNode.Parent
 	}
 }
 
-func (t BPTree) shouldUpdate(positionInsert int, key Key) bool {
+func (t BPTree[K, V]) shouldUpdate(positionInsert int, key Key[K, V]) bool {
 	return positionInsert > 0 && t.CurrentNode.Key[positionInsert-1].Key == key.Key
 }
 
-func (t *BPTree) updateExistingKey(positionInsert int, key Key) {
+func (t *BPTree[K, V]) updateExistingKey(positionInsert int, key Key[K, V]) {
 	t.CurrentNode.Key[positionInsert-1] = key
 }
 
-func (t *BPTree) insertNewKey(positionInsert int, key Key) {
+func (t *BPTree[K, V]) insertNewKey(positionInsert int, key Key[K, V]) {
 	t.CurrentNode.insertKey(key, positionInsert)
 }
 
-func (t *BPTree) searchLeaf(key Key) {
+// *
+func (t *BPTree[K, V]) searchLeaf(key Key[K, V]) {
 	t.CurrentNode = t.Root
 
 	for {
@@ -106,7 +111,8 @@ func (t *BPTree) searchLeaf(key Key) {
 	}
 }
 
-func (t *BPTree) splitParent() {
+// *
+func (t *BPTree[K, V]) splitParent() {
 	for t.CurrentNode != nil && t.Degree == t.CurrentNode.Pointer {
 		t.newParent()
 
@@ -123,11 +129,11 @@ func (t *BPTree) splitParent() {
 	}
 }
 
-func (t *BPTree) Next() {
+func (t *BPTree[K, V]) Next() {
 	t.CurrentNode = t.CurrentNode.Parent
 }
 
-func (t *BPTree) InsertOrUpdate(key Key) {
+func (t *BPTree[K, V]) InsertOrUpdate(key Key[K, V]) {
 	positionInsert := t.next()
 
 	if t.shouldUpdate(positionInsert, key) {
@@ -137,7 +143,7 @@ func (t *BPTree) InsertOrUpdate(key Key) {
 	}
 }
 
-func (t *BPTree) appendToLeaf(key Key) {
+func (t *BPTree[K, V]) appendToLeaf(key Key[K, V]) {
 	t.InsertOrUpdate(key)
 
 	if t.CurrentNode.Pointer == t.Degree {
@@ -151,7 +157,8 @@ func (t *BPTree) appendToLeaf(key Key) {
 	t.Next()
 }
 
-func (t *BPTree) updateState(newNode *Node) {
+// *
+func (t *BPTree[K, V]) updateState(newNode *Node[K, V]) {
 	indexToUpdate := t.next()
 
 	parentKeyIndex := t.MiddleKey
@@ -169,21 +176,21 @@ func (t *BPTree) updateState(newNode *Node) {
 
 //perfect
 
-type Node struct {
+type Node[K string | int | float64, V any] struct {
 	Pointer  int
-	Parent   *Node
-	LinkNode *Node
-	Key      []Key
+	Parent   *Node[K, V]
+	LinkNode *Node[K, V]
+	Key      []Key[K, V]
 }
 
-func newNode(degree int) *Node {
-	return &Node{
-		Key: make([]Key, degree+1),
+func newNode[K string | int | float64, V any](degree int) *Node[K, V] {
+	return &Node[K, V]{
+		Key: make([]Key[K, V], degree+1),
 	}
 }
 
 // search returns the index where the specified key should be inserted in the sorted keys array.
-func (n *Node) search(key Key) int {
+func (n *Node[K, V]) search(key Key[K, V]) int {
 	for i, currentKey := range n.Key[:n.Pointer] {
 		if key.Key < currentKey.Key {
 			return i
@@ -193,7 +200,7 @@ func (n *Node) search(key Key) int {
 	return n.Pointer
 }
 
-func (n *Node) link(node *Node) {
+func (n *Node[K, V]) link(node *Node[K, V]) {
 	if n.LinkNode != nil {
 		node.LinkNode = n.LinkNode
 	}
@@ -201,39 +208,39 @@ func (n *Node) link(node *Node) {
 	n.LinkNode = node
 }
 
-func (n *Node) appendKeys(key []Key, position, code int) {
+func (n *Node[K, V]) appendKeys(key []Key[K, V], position, code int) {
 	copy(n.Key[position:], key)
 	n.Pointer += len(key) - code
 }
 
-func (n *Node) increasePointer() {
+func (n *Node[K, V]) increasePointer() {
 	n.Pointer++
 }
 
-func (n *Node) appendKey(key Key, position int) {
+func (n *Node[K, V]) appendKey(key Key[K, V], position int) {
 	n.Key[position] = key
 }
 
-func (n *Node) insertKey(key Key, position int) {
+func (n *Node[K, V]) insertKey(key Key[K, V], position int) {
 	copy(n.Key[position+1:], n.Key[position:])
 	n.appendKey(key, position)
 	n.increasePointer()
 }
 
-type Key struct {
-	Key      int
-	Value    int
-	NextNode *Node
+type Key[K string | int | float64, V any] struct {
+	Key      K
+	Value    V
+	NextNode *Node[K, V]
 }
 
-func newKey(key, value int) Key {
-	return Key{
+func newKey[K string | int | float64, V any](key K, value V) Key[K, V] {
+	return Key[K, V]{
 		Key:   key,
 		Value: value,
 	}
 }
 
-func (k *Key) updateNextNode(n *Node) {
+func (k *Key[K, V]) updateNextNode(n *Node[K, V]) {
 	k.NextNode = n
 }
 
@@ -269,10 +276,10 @@ func (s *Stack) clear() {
 //======================================================================================00
 
 // for testing nothing special
-func (t *BPTree) All() {
+func (t *BPTree[K, V]) All() {
 	current := t.Root
 
-	make := make(map[int]struct{})
+	make := make(map[K]struct{})
 
 	//go to left first key
 	for current.Key[0].NextNode != nil {
@@ -281,7 +288,7 @@ func (t *BPTree) All() {
 
 	var counter int
 
-	var less int = -1
+	var less K
 
 	for current != nil {
 		for i := 0; i < current.Pointer; i++ {
