@@ -194,14 +194,13 @@ func BenchmarkInsertRandom(b *testing.B) {
 
 func Benchmark(b *testing.B) {
 	b.StopTimer()
-
 	data := make([]string, 40_001)
 
 	for index := range data {
 		data[index] = fmt.Sprintf("%d", rand.Intn(500_000))
 	}
 
-	BPTree := NewBPTree[string, int](40_000, 50)
+	BPTree := NewBPTree[string, int](40_000_000, 50)
 	b.StartTimer()
 
 	for i := 0; i < b.N; i++ {
