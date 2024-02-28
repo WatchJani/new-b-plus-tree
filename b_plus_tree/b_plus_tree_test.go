@@ -6,6 +6,23 @@ import (
 	"testing"
 )
 
+// is insert function work well
+func TestInsert(t *testing.T) {
+	numOfOperation := 20_000
+
+	bPTree := NewBPTree[int, int](numOfOperation, 50)
+
+	for index := 0; index < numOfOperation; index++ {
+		bPTree.Insert(rand.Intn(2500), rand.Intn(1024))
+	}
+
+	get, want := bPTree.all()
+	if get != want {
+		t.Errorf("get: %d | want: %d", get, want)
+	}
+
+}
+
 func BenchmarkInsertSameValue(b *testing.B) {
 	b.StopTimer()
 	BPTree := NewBPTree[int, int](40_000, 5)
@@ -47,7 +64,7 @@ func Benchmark(b *testing.B) {
 	b.StartTimer()
 
 	for i := 0; i < b.N; i++ {
-		for j := 0; j < 40_000; j++ {
+		for j := 0; j < 20_000; j++ {
 			BPTree.Insert(data[j], 0)
 		}
 		BPTree.ClearTree()

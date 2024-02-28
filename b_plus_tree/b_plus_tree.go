@@ -1,6 +1,7 @@
 package b_plus_tree
 
 import (
+	"errors"
 	"math"
 )
 
@@ -52,6 +53,18 @@ func (t *bPTree[K, V]) Insert(key K, value V) {
 	t.splitParent() //check if will parent split
 
 	t.clear()
+}
+
+func (t *bPTree[K, V]) NextKey() (*key[K, V], error) {
+	if t.stack.current+1 <= t.currentNode.pointer {
+		return &t.currentNode.key[t.stack.current+1], nil
+	}
+
+	if t.currentNode.linkNode != nil {
+		return &t.currentNode.linkNode.key[0], nil
+	}
+
+	return nil, errors.New("next key is not yet exist")
 }
 
 // make more memory for the tree
@@ -302,39 +315,40 @@ func (s *stack) clear() {
 
 //======================================================================================00
 
-// // for testing nothing special
-// func (t *BPTree[K, V]) all() {
-// 	current := t.Root
+// for testing nothing special
+// number of key
+// number of replication key
+func (t *bPTree[K, V]) all() (int, int) {
+	current := t.root
 
-// 	make := make(map[K]struct{})
+	make := make(map[K]struct{})
 
-// 	//go to left first key
-// 	for current.Key[0].NextNode != nil {
-// 		current = current.Key[0].NextNode
-// 	}
+	//go to left first key
+	for current.key[0].nextNode != nil {
+		current = current.key[0].nextNode
+	}
 
-// 	var counter int
+	var counter int
 
-// 	var less K
+	var less K
 
-// 	for current != nil {
-// 		for i := 0; i < current.Pointer; i++ {
-// 			make[current.Key[i].Key] = struct{}{}
-// 			if less <= current.Key[i].Key {
-// 				counter++
-// 				less = current.Key[i].Key
-// 			} else {
-// 				break
-// 			}
+	for current != nil {
+		for i := 0; i < current.pointer; i++ {
+			make[current.key[i].key] = struct{}{}
+			if less <= current.key[i].key {
+				counter++
+				less = current.key[i].key
+			} else {
+				break
+			}
 
-// 			fmt.Println(current.Key[i])
-// 		}
+			// fmt.Println(current.key[i])
+		}
 
-// 		fmt.Println()
+		// fmt.Println()
 
-// 		current = current.LinkNode
-// 	}
+		current = current.linkNode
+	}
 
-// 	fmt.Println(counter)
-// 	fmt.Println(len(make))
-// }
+	return counter, len(make)
+}
