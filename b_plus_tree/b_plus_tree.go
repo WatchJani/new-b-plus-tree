@@ -148,19 +148,25 @@ func (t *bPTree[K, V]) search(key key[K, V]) (*node[K, V], int) {
 // return current position of key | need to use with NextKey() func
 func (t *bPTree[K, V]) PositionSearch(key key[K, V]) {
 	t.pointerNode, t.pointerPosition = t.search(key)
-	fmt.Println(t.pointerNode, t.pointerPosition)
+
 }
 
 // return to use current value
 func (t *bPTree[K, V]) GetValueCurrentKey() K {
+	if t.pointerPosition != 0 {
+		return t.pointerNode.key[t.pointerPosition-1].key
+	}
+
 	return t.pointerNode.key[t.pointerPosition].key
 }
-func (t *bPTree[K, V]) NextKey(key key[K, V]) error {
+
+func (t *bPTree[K, V]) NextKey() error {
+	t.pointerPosition++
+
 	if t.pointerPosition > t.degree {
 		return t.resetPointer()
 	}
 
-	t.pointerPosition++
 	return nil
 }
 
