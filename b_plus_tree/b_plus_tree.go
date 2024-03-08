@@ -2,6 +2,7 @@ package b_plus_tree
 
 import (
 	"errors"
+	"fmt"
 	"math"
 )
 
@@ -22,6 +23,12 @@ type bPTree[K string | int | float64, V any] struct {
 	degree    int
 	middleKey int
 	processingNode[K, V]
+	keyPointer[K, V]
+}
+
+type keyPointer[K string | int | float64, V any] struct {
+	pointerPosition int
+	pointerNode     *node[K, V]
 }
 
 // new B+ Tree
@@ -41,7 +48,7 @@ func NewBPTree[K string | int | float64, V any](capacity, degree int) *bPTree[K,
 
 // insert or replace new value to tree
 func (t *bPTree[K, V]) Insert(key K, value V) {
-	realKey := newKey(key, value) //make real key
+	realKey := NewKey(key, value) //make real key
 
 	if t.root == nil { //Check if root exist
 		t.root = t.createNode() //create new root
@@ -55,7 +62,7 @@ func (t *bPTree[K, V]) Insert(key K, value V) {
 	t.clear()
 }
 
-func (t *bPTree[K, V]) NextKey() (*key[K, V], error) {
+func (t *bPTree[K, V]) NextKeyInsert() (*key[K, V], error) {
 	if t.stack.current+1 <= t.currentNode.pointer {
 		return &t.currentNode.key[t.stack.current+1], nil
 	}
@@ -121,6 +128,60 @@ func (t *bPTree[K, V]) insertNewKey(positionInsert int, key key[K, V]) {
 // returns nex node in level tree
 func (t *bPTree[K, V]) nextNode(nextIndex int) *node[K, V] {
 	return t.currentNode.key[nextIndex].nextNode
+}
+
+// search current node
+func (t *bPTree[K, V]) search(key key[K, V]) (*node[K, V], int) {
+	current := t.root
+
+	for {
+		nextIndex := current.search(key)
+
+		if nextNode := current.key[nextIndex].nextNode; nextNode == nil {
+			return current, nextIndex
+		} else {
+			current = nextNode
+		}
+	}
+}
+
+// return current position of key | need to use with NextKey() func
+func (t *bPTree[K, V]) PositionSearch(key key[K, V]) {
+	t.pointerNode, t.pointerPosition = t.search(key)
+	fmt.Println(t.pointerNode, t.pointerPosition)
+}
+
+// return to use current value
+func (t *bPTree[K, V]) GetValueCurrentKey() K {
+	return t.pointerNode.key[t.pointerPosition].key
+}
+func (t *bPTree[K, V]) NextKey(key key[K, V]) error {
+	if t.pointerPosition > t.degree {
+		return t.resetPointer()
+	}
+
+	t.pointerPosition++
+	return nil
+}
+
+func (t *bPTree[K, V]) resetPointer() error {
+	if t.pointerNode.linkNode != nil {
+		t.pointerNode = t.pointerNode.linkNode
+		t.pointerPosition = 0
+		return nil
+	}
+	return errors.New("this node does not exist")
+}
+
+// check if this element exist
+func (t *bPTree[K, V]) Search(key key[K, V]) (bool, *key[K, V]) {
+	node, index := t.search(key) // index give us back a first larger element than requested
+
+	if index == 0 || node.key[index-1].key != key.key {
+		return false, nil
+	}
+
+	return true, &node.key[index-1]
 }
 
 // find working leaf
@@ -273,7 +334,7 @@ type key[K string | int | float64, V any] struct {
 	nextNode *node[K, V]
 }
 
-func newKey[K string | int | float64, V any](realKey K, value V) key[K, V] {
+func NewKey[K string | int | float64, V any](realKey K, value V) key[K, V] {
 	return key[K, V]{
 		key:   realKey,
 		value: value,
@@ -318,7 +379,7 @@ func (s *stack) clear() {
 // for testing nothing special
 // number of key
 // number of replication key
-func (t *bPTree[K, V]) all() (int, int) {
+func (t *bPTree[K, V]) All() (int, int) {
 	current := t.root
 
 	make := make(map[K]struct{})
@@ -342,10 +403,10 @@ func (t *bPTree[K, V]) all() (int, int) {
 				break
 			}
 
-			// fmt.Println(current.key[i])
+			fmt.Println(current.key[i])
 		}
 
-		// fmt.Println()
+		fmt.Println()
 
 		current = current.linkNode
 	}

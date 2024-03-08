@@ -16,7 +16,7 @@ func TestInsert(t *testing.T) {
 		bPTree.Insert(rand.Intn(2500), rand.Intn(1024))
 	}
 
-	get, want := bPTree.all()
+	get, want := bPTree.All()
 	if get != want {
 		t.Errorf("get: %d | want: %d", get, want)
 	}
