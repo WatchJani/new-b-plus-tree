@@ -67,8 +67,8 @@ func (t *bPTree[K, V]) NextKeyInsert() (*key[K, V], error) {
 		return &t.currentNode.key[t.stack.current+1], nil
 	}
 
-	if t.currentNode.linkNode != nil {
-		return &t.currentNode.linkNode.key[0], nil
+	if t.currentNode.linkNodeRight != nil {
+		return &t.currentNode.linkNodeRight.key[0], nil
 	}
 
 	return nil, errors.New("next key is not yet exist")
@@ -171,8 +171,8 @@ func (t *bPTree[K, V]) NextKey() error {
 }
 
 func (t *bPTree[K, V]) resetPointer() error {
-	if t.pointerNode.linkNode != nil {
-		t.pointerNode = t.pointerNode.linkNode
+	if t.pointerNode.linkNodeRight != nil {
+		t.pointerNode = t.pointerNode.linkNodeRight
 		t.pointerPosition = 0
 		return nil
 	}
@@ -274,10 +274,11 @@ func (t *bPTree[K, V]) updateState(newNode *node[K, V]) {
 }
 
 type node[K string | int | float64, V any] struct {
-	pointer  int
-	parent   *node[K, V]
-	linkNode *node[K, V]
-	key      []key[K, V]
+	pointer       int
+	parent        *node[K, V]
+	linkNodeRight *node[K, V]
+	linkNodeLeft  *node[K, V]
+	key           []key[K, V]
 }
 
 // constructor for new node
@@ -305,11 +306,13 @@ func (n *node[K, V]) search(key key[K, V]) int {
 
 // link current node with next one
 func (n *node[K, V]) link(node *node[K, V]) {
-	if n.linkNode != nil {
-		node.linkNode = n.linkNode
+	if n.linkNodeRight != nil {
+		node.linkNodeRight = n.linkNodeRight //right connection
+		n.linkNodeRight.linkNodeLeft = node  //left connection
 	}
 
-	n.linkNode = node
+	n.linkNodeRight = node //right connection
+	node.linkNodeLeft = n  //left connection
 }
 
 // appends all key to current node
@@ -385,7 +388,7 @@ func (s *stack) clear() {
 // for testing nothing special
 // number of key
 // number of replication key
-func (t *bPTree[K, V]) All() (int, int) {
+func (t *bPTree[K, V]) AllRight() (int, int) {
 	current := t.root
 
 	make := make(map[K]struct{})
@@ -414,7 +417,42 @@ func (t *bPTree[K, V]) All() (int, int) {
 
 		fmt.Println()
 
-		current = current.linkNode
+		current = current.linkNodeRight
+	}
+
+	return counter, len(make)
+}
+
+func (t *bPTree[K, V]) AllLeft() (int, int) {
+	current := t.root
+
+	make := make(map[K]struct{})
+
+	//go to right first key
+	for current.key[current.pointer].nextNode != nil {
+		current = current.key[current.pointer].nextNode
+	}
+
+	var counter int
+
+	var less K = current.key[current.pointer-1].key // well
+
+	for current != nil {
+		for i := current.pointer - 1; i >= 0; i-- {
+			make[current.key[i].key] = struct{}{}
+			if less >= current.key[i].key {
+				counter++
+				less = current.key[i].key
+			} else {
+				break
+			}
+
+			fmt.Println(current.key[i])
+		}
+
+		fmt.Println()
+
+		current = current.linkNodeLeft
 	}
 
 	return counter, len(make)

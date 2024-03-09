@@ -14,9 +14,12 @@ func main() {
 		tree.Insert(rand.Intn(50000), 5)
 	}
 
-	tree.PositionSearch(b.NewKey(20000, 0))
+	// tree.PositionSearch(b.NewKey(20000, 0))
 
-	fmt.Println(tree.All())
+	fmt.Println(tree.AllRight())
+	fmt.Println("================================")
+	fmt.Println(tree.AllLeft())
+
 	// tree.NextKey()
-	fmt.Println(tree.GetValueCurrentKey())
+	// fmt.Println(tree.GetValueCurrentKey())
 }
