@@ -140,12 +140,12 @@ func (t *bPTree[K, V]) PositionSearch(key key[K, V]) {
 }
 
 // return to use current value
-func (t *bPTree[K, V]) GetValueCurrentKey() (*K, error) {
+func (t *bPTree[K, V]) GetValueCurrentKey() (K, error) {
 	if t.pointerPosition != 0 {
-		return &t.pointerNode.key[t.pointerPosition-1].key, nil
+		return t.pointerNode.key[t.pointerPosition-1].key, nil
 	}
 
-	return nil, errors.New("Three is empty")
+	return t.pointerNode.key[t.pointerPosition].key, errors.New("three is empty")
 }
 
 func (t *bPTree[K, V]) NextKey() error {

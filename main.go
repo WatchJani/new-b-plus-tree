@@ -25,5 +25,5 @@ func main() {
 		return
 	}
 
-	fmt.Println(*key)
+	fmt.Println(key)
 }

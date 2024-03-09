@@ -64,3 +64,26 @@ func Benchmark(b *testing.B) {
 		BPTree.ClearTree()
 	}
 }
+
+func BenchmarkSearch(b *testing.B) {
+	b.StopTimer()
+	data := make([]string, 4_000_000)
+
+	for index := range data {
+		data[index] = fmt.Sprintf("%d", rand.Intn(500_000))
+	}
+
+	BPTree := NewBPTree[string, int](4_000_000, 50)
+
+	for i := 0; i < 4_000_000; i++ {
+		BPTree.Insert(data[i], 0)
+	}
+
+	key := NewKey("05215", 4)
+
+	b.StartTimer()
+
+	for i := 0; i < b.N; i++ {
+		BPTree.Search(key)
+	}
+}
