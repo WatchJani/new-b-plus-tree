@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"log"
 	"math/rand"
 
 	b "github.com/WatchJani/new-b-plus-tree/b_plus_tree"
@@ -14,12 +15,15 @@ func main() {
 		tree.Insert(rand.Intn(50000), 5)
 	}
 
-	// tree.PositionSearch(b.NewKey(20000, 0))
+	tree.PositionSearch(b.NewKey(51100, 0))
 
 	fmt.Println(tree.AllRight())
-	fmt.Println("================================")
-	fmt.Println(tree.AllLeft())
 
-	// tree.NextKey()
-	// fmt.Println(tree.GetValueCurrentKey())
+	key, err := tree.GetValueCurrentKey()
+	if err != nil {
+		log.Println(err)
+		return
+	}
+
+	fmt.Println(*key)
 }

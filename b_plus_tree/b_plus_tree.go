@@ -62,18 +62,6 @@ func (t *bPTree[K, V]) Insert(key K, value V) {
 	t.clear()
 }
 
-func (t *bPTree[K, V]) NextKeyInsert() (*key[K, V], error) {
-	if t.stack.current+1 <= t.currentNode.pointer {
-		return &t.currentNode.key[t.stack.current+1], nil
-	}
-
-	if t.currentNode.linkNodeRight != nil {
-		return &t.currentNode.linkNodeRight.key[0], nil
-	}
-
-	return nil, errors.New("next key is not yet exist")
-}
-
 // make more memory for the tree
 func (t *bPTree[K, V]) ClearTree() {
 	t.memory = t.memory[:0]
@@ -152,12 +140,12 @@ func (t *bPTree[K, V]) PositionSearch(key key[K, V]) {
 }
 
 // return to use current value
-func (t *bPTree[K, V]) GetValueCurrentKey() K {
+func (t *bPTree[K, V]) GetValueCurrentKey() (*K, error) {
 	if t.pointerPosition != 0 {
-		return t.pointerNode.key[t.pointerPosition-1].key
+		return &t.pointerNode.key[t.pointerPosition-1].key, nil
 	}
 
-	return t.pointerNode.key[t.pointerPosition].key
+	return nil, errors.New("Three is empty")
 }
 
 func (t *bPTree[K, V]) NextKey() error {
@@ -225,7 +213,7 @@ func (t *bPTree[K, V]) splitParent() {
 	}
 }
 
-// next node
+// next node in pyramid
 func (t *bPTree[K, V]) nextParent() {
 	t.currentNode = t.currentNode.parent
 }
