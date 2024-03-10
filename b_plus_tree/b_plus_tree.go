@@ -99,17 +99,17 @@ func (t *BPTree[K, V]) newParent() {
 }
 
 // should i update existed key value
-func (t BPTree[K, V]) shouldUpdate(positionInsert int, key key[K, V]) bool {
+func (t BPTree[K, V]) shouldUpdate(positionInsert int, key Key[K, V]) bool {
 	return positionInsert > 0 && t.currentNode.key[positionInsert-1].key == key.key
 }
 
 // update value
-func (t *BPTree[K, V]) updateExistingKey(positionInsert int, key key[K, V]) {
+func (t *BPTree[K, V]) updateExistingKey(positionInsert int, key Key[K, V]) {
 	t.currentNode.key[positionInsert-1] = key
 }
 
 // insert new key in tree
-func (t *BPTree[K, V]) insertNewKey(positionInsert int, key key[K, V]) {
+func (t *BPTree[K, V]) insertNewKey(positionInsert int, key Key[K, V]) {
 	t.currentNode.insertKey(key, positionInsert)
 }
 
@@ -119,7 +119,7 @@ func (t *BPTree[K, V]) nextNode(nextIndex int) *node[K, V] {
 }
 
 // search current node
-func (t *BPTree[K, V]) search(key key[K, V]) (*node[K, V], int) {
+func (t *BPTree[K, V]) search(key Key[K, V]) (*node[K, V], int) {
 	current := t.root
 
 	for {
@@ -134,7 +134,7 @@ func (t *BPTree[K, V]) search(key key[K, V]) (*node[K, V], int) {
 }
 
 // return current position of key | need to use with NextKey() func
-func (t *BPTree[K, V]) PositionSearch(key key[K, V]) {
+func (t *BPTree[K, V]) PositionSearch(key Key[K, V]) {
 	t.pointerNode, t.pointerPosition = t.search(key)
 
 }
@@ -168,7 +168,7 @@ func (t *BPTree[K, V]) resetPointer() error {
 }
 
 // check if this element exist
-func (t *BPTree[K, V]) Search(key key[K, V]) (bool, *key[K, V]) {
+func (t *BPTree[K, V]) Search(key Key[K, V]) (bool, *Key[K, V]) {
 	node, index := t.search(key) // index give us back a first larger element than requested
 
 	if index == 0 || node.key[index-1].key != key.key {
@@ -179,7 +179,7 @@ func (t *BPTree[K, V]) Search(key key[K, V]) (bool, *key[K, V]) {
 }
 
 // find working leaf
-func (t *BPTree[K, V]) searchLeaf(key key[K, V]) {
+func (t *BPTree[K, V]) searchLeaf(key Key[K, V]) {
 	t.currentNode = t.root
 
 	for {
@@ -219,7 +219,7 @@ func (t *BPTree[K, V]) nextParent() {
 }
 
 // check if key exist then update value if not then add new
-func (t *BPTree[K, V]) insertOrUpdate(key key[K, V]) {
+func (t *BPTree[K, V]) insertOrUpdate(key Key[K, V]) {
 	positionInsert := t.next()
 
 	if t.shouldUpdate(positionInsert, key) {
@@ -230,7 +230,7 @@ func (t *BPTree[K, V]) insertOrUpdate(key key[K, V]) {
 }
 
 // add new value to the leaf
-func (t *BPTree[K, V]) appendToLeaf(key key[K, V]) {
+func (t *BPTree[K, V]) appendToLeaf(key Key[K, V]) {
 	t.insertOrUpdate(key)
 
 	if t.currentNode.pointer == t.degree {
@@ -266,23 +266,23 @@ type node[K string | int | float64, V any] struct {
 	parent        *node[K, V]
 	linkNodeRight *node[K, V]
 	linkNodeLeft  *node[K, V]
-	key           []key[K, V]
+	key           []Key[K, V]
 }
 
 // constructor for new node
 func newNode[K string | int | float64, V any](degree int) *node[K, V] {
 	return &node[K, V]{
-		key: make([]key[K, V], degree+1),
+		key: make([]Key[K, V], degree+1),
 	}
 }
 
 // make empty key
 func (n *node[K, V]) emptyKey(position int) {
-	n.key[position] = key[K, V]{}
+	n.key[position] = Key[K, V]{}
 }
 
 // search returns the index where the specified key should be inserted in the sorted keys array.
-func (n *node[K, V]) search(key key[K, V]) int {
+func (n *node[K, V]) search(key Key[K, V]) int {
 	for i, currentKey := range n.key[:n.pointer] {
 		if key.key < currentKey.key {
 			return i
@@ -304,7 +304,7 @@ func (n *node[K, V]) link(node *node[K, V]) {
 }
 
 // appends all key to current node
-func (n *node[K, V]) appendKeys(key []key[K, V], position, code int) {
+func (n *node[K, V]) appendKeys(key []Key[K, V], position, code int) {
 	copy(n.key[position:], key)
 	n.pointer += len(key) - code
 }
@@ -314,31 +314,31 @@ func (n *node[K, V]) increasePointer() {
 }
 
 // just append one key
-func (n *node[K, V]) appendKey(key key[K, V], position int) {
+func (n *node[K, V]) appendKey(key Key[K, V], position int) {
 	n.key[position] = key
 }
 
 // insert key on special position
-func (n *node[K, V]) insertKey(key key[K, V], position int) {
+func (n *node[K, V]) insertKey(key Key[K, V], position int) {
 	copy(n.key[position+1:], n.key[position:])
 	n.appendKey(key, position)
 	n.increasePointer()
 }
 
-type key[K string | int | float64, V any] struct {
+type Key[K string | int | float64, V any] struct {
 	key      K
 	value    V
 	nextNode *node[K, V]
 }
 
-func NewKey[K string | int | float64, V any](realKey K, value V) key[K, V] {
-	return key[K, V]{
+func NewKey[K string | int | float64, V any](realKey K, value V) Key[K, V] {
+	return Key[K, V]{
 		key:   realKey,
 		value: value,
 	}
 }
 
-func (k *key[K, V]) updateNextNode(n *node[K, V]) {
+func (k *Key[K, V]) updateNextNode(n *node[K, V]) {
 	k.nextNode = n
 }
 
