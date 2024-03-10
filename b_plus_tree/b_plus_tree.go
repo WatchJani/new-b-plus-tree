@@ -17,7 +17,7 @@ type processingNode[K string | int | float64, V any] struct {
 	stack       //have history of indexes
 }
 
-type bPTree[K string | int | float64, V any] struct {
+type BPTree[K string | int | float64, V any] struct {
 	memory    []*node[K, V]
 	root      *node[K, V]
 	degree    int
@@ -32,11 +32,11 @@ type keyPointer[K string | int | float64, V any] struct {
 }
 
 // new B+ Tree
-func NewBPTree[K string | int | float64, V any](capacity, degree int) *bPTree[K, V] {
+func NewBPTree[K string | int | float64, V any](capacity, degree int) *BPTree[K, V] {
 	numberOfNode := capacity / degree
 	treeHeight := math.Log2(float64(capacity))
 
-	return &bPTree[K, V]{
+	return &BPTree[K, V]{
 		memory:    make([]*node[K, V], 0, numberOfNode),
 		degree:    degree,
 		middleKey: degree / 2,
@@ -47,7 +47,7 @@ func NewBPTree[K string | int | float64, V any](capacity, degree int) *bPTree[K,
 }
 
 // insert or replace new value to tree
-func (t *bPTree[K, V]) Insert(key K, value V) {
+func (t *BPTree[K, V]) Insert(key K, value V) {
 	realKey := NewKey(key, value) //make real key
 
 	if t.root == nil { //Check if root exist
@@ -63,12 +63,12 @@ func (t *bPTree[K, V]) Insert(key K, value V) {
 }
 
 // make more memory for the tree
-func (t *bPTree[K, V]) ClearTree() {
+func (t *BPTree[K, V]) ClearTree() {
 	t.memory = t.memory[:0]
 }
 
 // create new node with one empty key
-func (t *bPTree[K, V]) createNode() *node[K, V] {
+func (t *BPTree[K, V]) createNode() *node[K, V] {
 	newNode := newNode[K, V](t.degree)
 	t.memory = append(t.memory, newNode)
 
@@ -78,7 +78,7 @@ func (t *bPTree[K, V]) createNode() *node[K, V] {
 }
 
 // split node on two identic
-func (t *bPTree[K, V]) split(code int) *node[K, V] {
+func (t *BPTree[K, V]) split(code int) *node[K, V] {
 	newNode := t.createNode()
 
 	start, end := t.middleKey+code, t.degree+code
@@ -91,7 +91,7 @@ func (t *bPTree[K, V]) split(code int) *node[K, V] {
 }
 
 // create new parent of node
-func (t *bPTree[K, V]) newParent() {
+func (t *BPTree[K, V]) newParent() {
 	if t.currentNode.parent == nil {
 		t.currentNode.parent = t.createNode()
 		t.root = t.currentNode.parent
@@ -99,27 +99,27 @@ func (t *bPTree[K, V]) newParent() {
 }
 
 // should i update existed key value
-func (t bPTree[K, V]) shouldUpdate(positionInsert int, key key[K, V]) bool {
+func (t BPTree[K, V]) shouldUpdate(positionInsert int, key key[K, V]) bool {
 	return positionInsert > 0 && t.currentNode.key[positionInsert-1].key == key.key
 }
 
 // update value
-func (t *bPTree[K, V]) updateExistingKey(positionInsert int, key key[K, V]) {
+func (t *BPTree[K, V]) updateExistingKey(positionInsert int, key key[K, V]) {
 	t.currentNode.key[positionInsert-1] = key
 }
 
 // insert new key in tree
-func (t *bPTree[K, V]) insertNewKey(positionInsert int, key key[K, V]) {
+func (t *BPTree[K, V]) insertNewKey(positionInsert int, key key[K, V]) {
 	t.currentNode.insertKey(key, positionInsert)
 }
 
 // returns nex node in level tree
-func (t *bPTree[K, V]) nextNode(nextIndex int) *node[K, V] {
+func (t *BPTree[K, V]) nextNode(nextIndex int) *node[K, V] {
 	return t.currentNode.key[nextIndex].nextNode
 }
 
 // search current node
-func (t *bPTree[K, V]) search(key key[K, V]) (*node[K, V], int) {
+func (t *BPTree[K, V]) search(key key[K, V]) (*node[K, V], int) {
 	current := t.root
 
 	for {
@@ -134,13 +134,13 @@ func (t *bPTree[K, V]) search(key key[K, V]) (*node[K, V], int) {
 }
 
 // return current position of key | need to use with NextKey() func
-func (t *bPTree[K, V]) PositionSearch(key key[K, V]) {
+func (t *BPTree[K, V]) PositionSearch(key key[K, V]) {
 	t.pointerNode, t.pointerPosition = t.search(key)
 
 }
 
 // return to use current value
-func (t *bPTree[K, V]) GetValueCurrentKey() (K, error) {
+func (t *BPTree[K, V]) GetValueCurrentKey() (K, error) {
 	if t.pointerPosition != 0 {
 		return t.pointerNode.key[t.pointerPosition-1].key, nil
 	}
@@ -148,7 +148,7 @@ func (t *bPTree[K, V]) GetValueCurrentKey() (K, error) {
 	return t.pointerNode.key[t.pointerPosition].key, errors.New("three is empty")
 }
 
-func (t *bPTree[K, V]) NextKey() error {
+func (t *BPTree[K, V]) NextKey() error {
 	t.pointerPosition++
 
 	if t.pointerPosition > t.degree {
@@ -158,7 +158,7 @@ func (t *bPTree[K, V]) NextKey() error {
 	return nil
 }
 
-func (t *bPTree[K, V]) resetPointer() error {
+func (t *BPTree[K, V]) resetPointer() error {
 	if t.pointerNode.linkNodeRight != nil {
 		t.pointerNode = t.pointerNode.linkNodeRight
 		t.pointerPosition = 0
@@ -168,7 +168,7 @@ func (t *bPTree[K, V]) resetPointer() error {
 }
 
 // check if this element exist
-func (t *bPTree[K, V]) Search(key key[K, V]) (bool, *key[K, V]) {
+func (t *BPTree[K, V]) Search(key key[K, V]) (bool, *key[K, V]) {
 	node, index := t.search(key) // index give us back a first larger element than requested
 
 	if index == 0 || node.key[index-1].key != key.key {
@@ -179,7 +179,7 @@ func (t *bPTree[K, V]) Search(key key[K, V]) (bool, *key[K, V]) {
 }
 
 // find working leaf
-func (t *bPTree[K, V]) searchLeaf(key key[K, V]) {
+func (t *BPTree[K, V]) searchLeaf(key key[K, V]) {
 	t.currentNode = t.root
 
 	for {
@@ -195,7 +195,7 @@ func (t *bPTree[K, V]) searchLeaf(key key[K, V]) {
 }
 
 // split all full parents node
-func (t *bPTree[K, V]) splitParent() {
+func (t *BPTree[K, V]) splitParent() {
 	for t.currentNode != nil && t.degree == t.currentNode.pointer {
 		t.newParent()
 
@@ -214,12 +214,12 @@ func (t *bPTree[K, V]) splitParent() {
 }
 
 // next node in pyramid
-func (t *bPTree[K, V]) nextParent() {
+func (t *BPTree[K, V]) nextParent() {
 	t.currentNode = t.currentNode.parent
 }
 
 // check if key exist then update value if not then add new
-func (t *bPTree[K, V]) insertOrUpdate(key key[K, V]) {
+func (t *BPTree[K, V]) insertOrUpdate(key key[K, V]) {
 	positionInsert := t.next()
 
 	if t.shouldUpdate(positionInsert, key) {
@@ -230,7 +230,7 @@ func (t *bPTree[K, V]) insertOrUpdate(key key[K, V]) {
 }
 
 // add new value to the leaf
-func (t *bPTree[K, V]) appendToLeaf(key key[K, V]) {
+func (t *BPTree[K, V]) appendToLeaf(key key[K, V]) {
 	t.insertOrUpdate(key)
 
 	if t.currentNode.pointer == t.degree {
@@ -245,7 +245,7 @@ func (t *bPTree[K, V]) appendToLeaf(key key[K, V]) {
 }
 
 // update parent, new spliced node
-func (t *bPTree[K, V]) updateState(newNode *node[K, V]) {
+func (t *BPTree[K, V]) updateState(newNode *node[K, V]) {
 	indexToUpdate := t.next()
 
 	parentKeyIndex := t.middleKey
@@ -376,7 +376,7 @@ func (s *stack) clear() {
 // for testing nothing special
 // number of key
 // number of replication key
-func (t *bPTree[K, V]) AllRight() (int, int) {
+func (t *BPTree[K, V]) AllRight() (int, int) {
 	current := t.root
 
 	make := make(map[K]struct{})
@@ -411,7 +411,7 @@ func (t *bPTree[K, V]) AllRight() (int, int) {
 	return counter, len(make)
 }
 
-func (t *bPTree[K, V]) AllLeft() (int, int) {
+func (t *BPTree[K, V]) AllLeft() (int, int) {
 	current := t.root
 
 	make := make(map[K]struct{})
