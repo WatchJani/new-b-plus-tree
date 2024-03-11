@@ -84,6 +84,6 @@ func BenchmarkSearch(b *testing.B) {
 	b.StartTimer()
 
 	for i := 0; i < b.N; i++ {
-		BPTree.Search(key)
+		BPTree.Search(key.key)
 	}
 }

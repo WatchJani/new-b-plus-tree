@@ -2,7 +2,6 @@ package b_plus_tree
 
 import (
 	"errors"
-	"fmt"
 	"math"
 )
 
@@ -54,8 +53,8 @@ func (t *BPTree[K, V]) Insert(key K, value V) {
 		t.root = t.createNode() //create new root
 	}
 
-	t.searchLeaf(realKey)   //find leaf
-	t.appendToLeaf(realKey) //add to leaf
+	t.searchLeaf(realKey.key) //find leaf
+	t.appendToLeaf(realKey)   //add to leaf
 
 	t.splitParent() //check if will parent split
 
@@ -119,7 +118,7 @@ func (t *BPTree[K, V]) nextNode(nextIndex int) *node[K, V] {
 }
 
 // search current node
-func (t *BPTree[K, V]) search(key Key[K, V]) (*node[K, V], int) {
+func (t *BPTree[K, V]) search(key K) (*node[K, V], int) {
 	current := t.root
 
 	for {
@@ -134,7 +133,7 @@ func (t *BPTree[K, V]) search(key Key[K, V]) (*node[K, V], int) {
 }
 
 // return current position of key | need to use with NextKey() func
-func (t *BPTree[K, V]) PositionSearch(key Key[K, V]) {
+func (t *BPTree[K, V]) PositionSearch(key K) {
 	t.pointerNode, t.pointerPosition = t.search(key)
 
 }
@@ -168,10 +167,10 @@ func (t *BPTree[K, V]) resetPointer() error {
 }
 
 // check if this element exist
-func (t *BPTree[K, V]) Search(key Key[K, V]) (bool, *Key[K, V]) {
+func (t *BPTree[K, V]) Search(key K) (bool, *Key[K, V]) {
 	node, index := t.search(key) // index give us back a first larger element than requested
 
-	if index == 0 || node.key[index-1].key != key.key {
+	if index == 0 || node.key[index-1].key != key {
 		return false, nil
 	}
 
@@ -179,7 +178,7 @@ func (t *BPTree[K, V]) Search(key Key[K, V]) (bool, *Key[K, V]) {
 }
 
 // find working leaf
-func (t *BPTree[K, V]) searchLeaf(key Key[K, V]) {
+func (t *BPTree[K, V]) searchLeaf(key K) {
 	t.currentNode = t.root
 
 	for {
@@ -282,9 +281,9 @@ func (n *node[K, V]) emptyKey(position int) {
 }
 
 // search returns the index where the specified key should be inserted in the sorted keys array.
-func (n *node[K, V]) search(key Key[K, V]) int {
+func (n *node[K, V]) search(key K) int {
 	for i, currentKey := range n.key[:n.pointer] {
-		if key.key < currentKey.key {
+		if key < currentKey.key {
 			return i
 		}
 	}
@@ -371,77 +370,24 @@ func (s *stack) clear() {
 	s.current = 0
 }
 
-//======================================================================================00
-
-// for testing nothing special
-// number of key
-// number of replication key
-func (t *BPTree[K, V]) AllRight() (int, int) {
+// return first key in BPTree
+func (t *BPTree[K, V]) FirstKey() Key[K, V] {
 	current := t.root
 
-	make := make(map[K]struct{})
-
-	//go to left first key
 	for current.key[0].nextNode != nil {
 		current = current.key[0].nextNode
 	}
 
-	var counter int
-
-	var less K
-
-	for current != nil {
-		for i := 0; i < current.pointer; i++ {
-			make[current.key[i].key] = struct{}{}
-			if less <= current.key[i].key {
-				counter++
-				less = current.key[i].key
-			} else {
-				break
-			}
-
-			fmt.Println(current.key[i])
-		}
-
-		fmt.Println()
-
-		current = current.linkNodeRight
-	}
-
-	return counter, len(make)
+	return current.key[0]
 }
 
-func (t *BPTree[K, V]) AllLeft() (int, int) {
+// return last key in BPTree
+func (t *BPTree[K, V]) LastKey() Key[K, V] {
 	current := t.root
 
-	make := make(map[K]struct{})
-
-	//go to right first key
 	for current.key[current.pointer].nextNode != nil {
 		current = current.key[current.pointer].nextNode
 	}
 
-	var counter int
-
-	var less K = current.key[current.pointer-1].key // well
-
-	for current != nil {
-		for i := current.pointer - 1; i >= 0; i-- {
-			make[current.key[i].key] = struct{}{}
-			if less >= current.key[i].key {
-				counter++
-				less = current.key[i].key
-			} else {
-				break
-			}
-
-			fmt.Println(current.key[i])
-		}
-
-		fmt.Println()
-
-		current = current.linkNodeLeft
-	}
-
-	return counter, len(make)
+	return current.key[current.pointer]
 }
