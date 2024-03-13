@@ -139,12 +139,12 @@ func (t *BPTree[K, V]) PositionSearch(key K) {
 }
 
 // return to use current value
-func (t *BPTree[K, V]) GetValueCurrentKey() (K, error) {
+func (t *BPTree[K, V]) GetCurrentKey() (Key[K, V], error) {
 	if t.pointerPosition != 0 {
-		return t.pointerNode.key[t.pointerPosition-1].key, nil
+		return t.pointerNode.key[t.pointerPosition-1], nil
 	}
 
-	return t.pointerNode.key[t.pointerPosition].key, errors.New("three is empty")
+	return t.pointerNode.key[t.pointerPosition], errors.New("three is empty")
 }
 
 func (t *BPTree[K, V]) NextKey() error {
@@ -335,6 +335,14 @@ func NewKey[K string | int | float64, V any](realKey K, value V) Key[K, V] {
 		key:   realKey,
 		value: value,
 	}
+}
+
+func (k Key[K, V]) GetKey() K {
+	return k.key
+}
+
+func (k Key[K, V]) GetValue() V {
+	return k.value
 }
 
 func (k *Key[K, V]) updateNextNode(n *node[K, V]) {

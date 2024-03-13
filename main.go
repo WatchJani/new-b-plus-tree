@@ -19,7 +19,7 @@ func main() {
 
 	fmt.Println(tree.AllRight())
 
-	key, err := tree.GetValueCurrentKey()
+	key, err := tree.GetCurrentKey()
 	if err != nil {
 		log.Println(err)
 		return
