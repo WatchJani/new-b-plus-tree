@@ -46,7 +46,7 @@ func BenchmarkInsertRandom(b *testing.B) {
 	}
 }
 
-func Benchmark(b *testing.B) {
+func BenchmarkInsert2000(b *testing.B) {
 	b.StopTimer()
 	data := make([]string, 40_001)
 
@@ -62,6 +62,38 @@ func Benchmark(b *testing.B) {
 			BPTree.Insert(data[j], 0)
 		}
 		BPTree.ClearTree()
+	}
+}
+
+func BenchmarkStringInsert(b *testing.B) {
+	b.StopTimer()
+	data := make([]string, b.N)
+
+	for index := range data {
+		data[index] = fmt.Sprintf("%d", rand.Intn(500_000))
+	}
+
+	BPTree := NewBPTree[string, int](1_000_000, 50)
+	b.StartTimer()
+	for i := 0; i < b.N; i++ {
+		BPTree.Insert(data[i], 0)
+	}
+}
+
+func BenchmarkByteInsert(b *testing.B) {
+	b.StopTimer()
+	data := make([][]byte, b.N)
+
+	for index := range data {
+		data[index] = make([]byte, 6)
+		data[index] = []byte(fmt.Sprintf("%d", rand.Intn(500_000)))
+	}
+
+	BPTree := NewBPTreeByte[int](1_000_000, 50)
+	b.StartTimer()
+
+	for i := 0; i < b.N; i++ {
+		BPTree.InsertByte(data[i], 0)
 	}
 }
 
