@@ -61,6 +61,10 @@ func (t *BPTree[K, V]) Insert(key K, value V) {
 	t.clear()
 }
 
+func (t BPTree[K, V]) GetRoot() *node[K, V] {
+	return t.root
+}
+
 // make more memory for the tree
 func (t *BPTree[K, V]) ClearTree() {
 	t.memory = t.memory[:0]
@@ -113,7 +117,7 @@ func (t *BPTree[K, V]) insertNewKey(positionInsert int, key Key[K, V]) {
 }
 
 // returns nex node in level tree
-func (t *BPTree[K, V]) nextNode(nextIndex int) *node[K, V] {
+func (t *BPTree[K, V]) NextNode(nextIndex int) *node[K, V] {
 	return t.currentNode.key[nextIndex].nextNode
 }
 
@@ -186,7 +190,7 @@ func (t *BPTree[K, V]) searchLeaf(key K) {
 		nextIndex := t.currentNode.search(key)
 		t.add(nextIndex)
 
-		if nextNode := t.nextNode(nextIndex); nextNode == nil {
+		if nextNode := t.NextNode(nextIndex); nextNode == nil {
 			break
 		} else {
 			t.currentNode = nextNode
@@ -276,9 +280,21 @@ func newNode[K string | int | float64, V any](degree int) *node[K, V] {
 	}
 }
 
+func (n *node[K, V]) GetLinkNodeRight() *node[K, V] {
+	return n.linkNodeRight
+}
+
 // make empty key
 func (n *node[K, V]) emptyKey(position int) {
 	n.key[position] = Key[K, V]{}
+}
+
+func (n *node[K, V]) GetKeyOn(index int) Key[K, V] {
+	return n.key[index]
+}
+
+func (n *node[K, V]) GetPointer() int {
+	return n.pointer
 }
 
 // search returns the index where the specified key should be inserted in the sorted keys array.
@@ -336,6 +352,10 @@ func NewKey[K string | int | float64, V any](realKey K, value V) Key[K, V] {
 		key:   realKey,
 		value: value,
 	}
+}
+
+func (k Key[K, V]) GetNextNode() *node[K, V] {
+	return k.nextNode
 }
 
 func (k Key[K, V]) GetKey() K {
@@ -399,8 +419,4 @@ func (t *BPTree[K, V]) LastKey() Key[K, V] {
 	}
 
 	return current.key[current.pointer]
-}
-
-func (t BPTree[K, V]) GetRoot() *node[K, V] {
-	return t.root
 }
