@@ -163,6 +163,7 @@ func (t *BPTree[K, V]) resetPointer() error {
 		t.pointerPosition = 0
 		return nil
 	}
+
 	return errors.New("this node does not exist")
 }
 
@@ -398,4 +399,8 @@ func (t *BPTree[K, V]) LastKey() Key[K, V] {
 	}
 
 	return current.key[current.pointer]
+}
+
+func (t BPTree[K, V]) GetRoot() *node[K, V] {
+	return t.root
 }

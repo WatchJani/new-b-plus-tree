@@ -48,7 +48,7 @@ func BenchmarkInsertRandom(b *testing.B) {
 
 func BenchmarkInsert2000(b *testing.B) {
 	b.StopTimer()
-	data := make([]string, 40_001)
+	data := make([]string, 80_000)
 
 	for index := range data {
 		data[index] = fmt.Sprintf("%d", rand.Intn(500_000))
@@ -58,7 +58,7 @@ func BenchmarkInsert2000(b *testing.B) {
 	b.StartTimer()
 
 	for i := 0; i < b.N; i++ {
-		for j := 0; j < 20_000; j++ {
+		for j := 0; j < 80_000; j++ {
 			BPTree.Insert(data[j], 0)
 		}
 		BPTree.ClearTree()
